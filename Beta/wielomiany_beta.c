@@ -1,28 +1,41 @@
 #include <stdio.h>
 #include <stdbool.h>
-
+#include <ctype.h>
+#include <assert.h>
 
 #define STOPIEN 12
 
 int getchar_without_space(){// funkcja zwraca znak z wejścia ale pomija spacje
     int i = getchar();
-    while(i == ' ') i = getchar();
+    while(i == ' '){
+        i = getchar();
+    }
     return i;
 }
 
+int stopien_wielomianu(int wiel[]){// zwraca stopien wielomianu z podanej tabeli
+    int stopien = 0;
+    for(int i = 1; i<STOPIEN; ++i){
+        if(wiel[i] != 0) stopien = i-1; 
+    }
+    return stopien;
+}
+
 int wczytywanie_liczby(int i, int *liczba){// wczytuje liczbe z wyjscia i przypisuje ją do podanej zmiennej, zwraca kolejny znak z wyjścia
-    int aktualne = i - 48;
+    assert(isdigit(i));
+    int aktualne = i - '0';
+
     i = getchar_without_space();
     while(i != '-' && i != '+' && i != '\n' && i!='x'){
         aktualne *= 10;
-        aktualne += i - 48;
+        aktualne += i - '0';
         i = getchar_without_space();
     }
     *liczba = aktualne;
     return i;
 }
 
-int wczytywanie_x(int znak, int wspol, int wiel[]){ // wpisuje jednomian x do tabeli i zwraca kolejny znak z wyjścia
+int wczytywanie_jednomianu(int znak, int wspol, int wiel[]){ // wpisuje jednomian do tabeli i zwraca kolejny znak z wyjścia
     int i = getchar_without_space();
     int stopien = 1;
 
@@ -30,7 +43,7 @@ int wczytywanie_x(int znak, int wspol, int wiel[]){ // wpisuje jednomian x do ta
         wiel[stopien+1] = znak * wspol;
         return i;
     }
-
+    assert(i == '^');
     i = getchar_without_space();
     i = wczytywanie_liczby(i, &stopien);
     wiel[stopien+1] = znak * wspol;
@@ -47,7 +60,9 @@ int czytanie_jednomianu(int i,int wiel[]){// czyta pojedyńczy jednomian i wpisu
         return i;
     }
 
-    if(i == '+') i = getchar_without_space();
+    if(i == '+'){
+        i = getchar_without_space();
+    }
     
     if(i == '-'){
         znak = -1;
@@ -56,25 +71,19 @@ int czytanie_jednomianu(int i,int wiel[]){// czyta pojedyńczy jednomian i wpisu
 
     if(i == 'x'){
         wspol = 1;
-        return wczytywanie_x(znak,wspol,wiel);
+        return wczytywanie_jednomianu(znak,wspol,wiel);
     }
 
-    i = wczytywanie_liczby(i, &wspol); //i to liczba
+    assert(isdigit(i));
+    i = wczytywanie_liczby(i, &wspol);
 
     if(i == 'x'){
-        return wczytywanie_x(znak,wspol,wiel);
+        return wczytywanie_jednomianu(znak,wspol,wiel);
     }
-    wiel[1] = znak * wspol; //to znaczy ze to jednomian stopnia zerowego
+
+    wiel[1] = znak * wspol;
 
     return i;
-}
-
-int stopien_wielomianu(int wiel[]){// zwraca stopien wielomianu z podanej tabeli
-    int stopien = 0;
-    for(int i = 1; i<STOPIEN; ++i){
-        if(wiel[i] != 0) stopien = i-1; 
-    }
-    return stopien;
 }
 
 void czytanie_wielomianu(int wiel[]){// czyta wielomian z wejscia i wpisywanie go podanej tabeli
@@ -127,7 +136,7 @@ void wypisywanie_wielomianu(int wiel[]){// wyspisuje wielomian z tablicy na stan
 
     if( wiel[0] < 2){
         wypisywanie_wielomianu_stopnia_0_1(wiel);
-    } else {
+    } else { // wypisywanie wielomianu stopnia wiekszego od 1
         if(wiel[wiel[0]+1] == 1) printf("x^%d",wiel[0]);
         else if(wiel[wiel[0]+1] == -1) printf("-x^%d",wiel[0]);
         else printf("%dx^%d", wiel[wiel[0]+1], wiel[0]);
@@ -147,6 +156,7 @@ void wypisywanie_wielomianu(int wiel[]){// wyspisuje wielomian z tablicy na stan
             else if(wiel[2] > 1) printf(" + %dx",wiel[2]);
             else printf(" - %dx",wiel[2]*(-1));
         }
+
         if(wiel[1] != 0){
             if(wiel[1] > 0) printf(" + %d",wiel[1]);
             else printf(" - %d",wiel[1]*(-1));
